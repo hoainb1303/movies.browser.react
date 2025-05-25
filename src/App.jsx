@@ -1,8 +1,65 @@
-import React from "react";
+import React, { use } from "react";
+import { useEffect, useState } from "react";
 import Search from "./components/search";
 
+const API_BASE_URL = "https://api.themoviedb.org/3";
+
+const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
+
+const API_OPTIONS = {
+  method: "GET",
+  headers: {
+    accept: "application/json",
+    Authorization: `Bearer ${API_KEY}`,
+  },
+};
+
 const App = () => {
-  const [searchTerm, setSearchTerm] = React.useState("");
+  // State variables to manage search term, error message, movie list, and loading state
+  const [searchTerm, setSearchTerm] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [movieList, setMovieList] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const fetchMovies = async () => {
+    // Reset error message and loading state before fetching
+    setIsLoading(true);
+    setErrorMessage("");
+    try {
+      const endpoint = `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
+      const response = await fetch(endpoint, API_OPTIONS);
+      // Check if response is ok before set data, if not throw an error
+      if (!response.ok) {
+        throw new Error("Tải dữ liệu phim thật bại.");
+      }
+
+      // If response is ok, set data to JSON
+      const data = await response.json();
+
+      // Check if fetched data response then set movie list to empty list and set error message if response is false
+      if (data.Response === "False") {
+        setErrorMessage(
+          data.Error || "Tải dữ liệu phim thật bại. Hãy thử lại sau. 1"
+        );
+        setMovieList([]);
+        return;
+      }
+
+      // Set the movie list with the fetched data if everything is ok
+      setMovieList(data.results || []);
+    } catch (error) {
+      console.error("Có lỗi trong lúc tải dữ liệu phim:", error);
+      setErrorMessage("Tải dữ liệu phim thật bại. Hãy thử lại sau. 2");
+    } finally {
+      // Set loading state to false no matter what happens after fetching
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMovies();
+  }, []);
+
   return (
     <main>
       <div className="pattern" />
@@ -10,11 +67,25 @@ const App = () => {
         <header>
           <img src="./hero.png" alt="Hero Banner"></img>
           <h1>
-            Find <span className="text-gradient">Movies</span> You'll Enjoy
-            Without the Hassle
+            Tìm <span className="text-gradient">Bộ Phim</span> Mà Bạn<br></br>
+            Sẽ Xem Tối Nay
           </h1>
+          <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         </header>
-        <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        <section className="all-movies">
+          <h2>Tất cả phim</h2>
+          {isLoading ? (
+            <p className="text-white">Đang tải...</p>
+          ) : errorMessage ? (
+            <p className="text-red-500">{errorMessage}</p>
+          ) : (
+            <ul>
+              {movieList.map((movie) => (
+                <p className="text-white">{movie.title}</p>
+              ))}
+            </ul>
+          )}
+        </section>
         <h1 className="text-white">{searchTerm}</h1>
       </div>
     </main>
