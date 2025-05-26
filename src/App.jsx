@@ -21,12 +21,14 @@ const App = () => {
   const [movieList, setMovieList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const fetchMovies = async () => {
+  const fetchMovies = async (query = "") => {
     // Reset error message and loading state before fetching
     setIsLoading(true);
     setErrorMessage("");
     try {
-      const endpoint = `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
+      const endpoint = query
+        ? `${API_BASE_URL}/search/movie?query=${encodeURIComponent(query)}`
+        : `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
       const response = await fetch(endpoint, API_OPTIONS);
       // Check if response is ok before set data, if not throw an error
       if (!response.ok) {
@@ -56,9 +58,10 @@ const App = () => {
     }
   };
 
+  // Put searchTerm in useEffect's dependency array to fetch movies whenever the search term changes
   useEffect(() => {
-    fetchMovies();
-  }, []);
+    fetchMovies(searchTerm);
+  }, [searchTerm]);
 
   return (
     <main>
@@ -86,7 +89,6 @@ const App = () => {
             </ul>
           )}
         </section>
-        <h1 className="text-white">{searchTerm}</h1>
       </div>
     </main>
   );

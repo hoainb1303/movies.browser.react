@@ -21,22 +21,22 @@ const MovieCard = ({
     original_language,
   },
 }) => {
-  const [mainCast, setMainCast] = useState("No");
+  const [mainCast, setMainCast] = useState("");
 
   const fetchMainCast = async () => {
     try {
       const endpoint = `${API_BASE_URL}/movie/${id}/credits`;
       const response = await fetch(endpoint, API_OPTIONS);
-      // Check if response is ok before set data, if not throw an error
+      // Check if response is ok before set credit, if not throw an error
       if (!response.ok) {
         throw new Error("Tải dữ liệu phim thật bại.");
       }
-      // If response is ok, set data to JSON
+      // If response is ok, set credit to JSON
       const credit = await response.json();
       // Get the first two cast members and set them as main cast
       setMainCast(`${credit.cast[0].name}, ${credit.cast[1].name}`);
     } catch (error) {
-      console.error("Error fetching main cast:", error);
+      console.error("Tải dữ liệu phim thật bại:", error);
     }
   };
 
