@@ -140,6 +140,10 @@
     & .content .year {
       @apply text-gray-100 font-medium text-base;
     }
+
+    & .content .cast {
+      @apply text-white font-medium text-base;
+    }
   }
 }
 

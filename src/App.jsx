@@ -1,11 +1,11 @@
 import React, { use } from "react";
 import { useEffect, useState } from "react";
-import Search from "./components/search";
+import Search from "./components/Search";
+import Spinner from "./components/Spinner";
+import MovieCard from "./components/MovieCard";
 
 const API_BASE_URL = "https://api.themoviedb.org/3";
-
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
-
 const API_OPTIONS = {
   method: "GET",
   headers: {
@@ -39,7 +39,7 @@ const App = () => {
       // Check if fetched data response then set movie list to empty list and set error message if response is false
       if (data.Response === "False") {
         setErrorMessage(
-          data.Error || "Tải dữ liệu phim thật bại. Hãy thử lại sau. 1"
+          data.Error || "Tải dữ liệu phim thật bại. Hãy thử lại sau."
         );
         setMovieList([]);
         return;
@@ -49,7 +49,7 @@ const App = () => {
       setMovieList(data.results || []);
     } catch (error) {
       console.error("Có lỗi trong lúc tải dữ liệu phim:", error);
-      setErrorMessage("Tải dữ liệu phim thật bại. Hãy thử lại sau. 2");
+      setErrorMessage("Tải dữ liệu phim thật bại. Hãy thử lại sau.");
     } finally {
       // Set loading state to false no matter what happens after fetching
       setIsLoading(false);
@@ -73,15 +73,15 @@ const App = () => {
           <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         </header>
         <section className="all-movies">
-          <h2>Tất cả phim</h2>
+          <h2 className="mt-[40px]">Tất cả phim</h2>
           {isLoading ? (
-            <p className="text-white">Đang tải...</p>
+            <Spinner />
           ) : errorMessage ? (
             <p className="text-red-500">{errorMessage}</p>
           ) : (
             <ul>
               {movieList.map((movie) => (
-                <p className="text-white">{movie.title}</p>
+                <MovieCard key={movie.id} movie={movie} />
               ))}
             </ul>
           )}
