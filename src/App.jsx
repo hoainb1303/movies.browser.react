@@ -1,8 +1,11 @@
 import React, { use } from "react";
 import { useEffect, useState } from "react";
+import { useDebounce } from "react-use";
+
 import Search from "./components/Search";
 import Spinner from "./components/Spinner";
 import MovieCard from "./components/MovieCard";
+import { updateSearchCount } from "./appwrite";
 
 const API_BASE_URL = "https://api.themoviedb.org/3";
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
@@ -20,6 +23,7 @@ const App = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [movieList, setMovieList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
 
   const fetchMovies = async (query = "") => {
     // Reset error message and loading state before fetching
@@ -49,6 +53,10 @@ const App = () => {
 
       // Set the movie list with the fetched data if everything is ok
       setMovieList(data.results || []);
+      //If search query is exists and there're result => Update search result to the database
+      if (query && data.results.length > 0) {
+        await updateSearchCount(query, data.results[0]);
+      }
     } catch (error) {
       console.error("Có lỗi trong lúc tải dữ liệu phim:", error);
       setErrorMessage("Tải dữ liệu phim thật bại. Hãy thử lại sau.");
@@ -58,10 +66,13 @@ const App = () => {
     }
   };
 
-  // Put searchTerm in useEffect's dependency array to fetch movies whenever the search term changes
+  // Use useDebounce to delay the search term update by 500ms
+  useDebounce(() => setDebouncedSearchTerm(searchTerm), 500, [searchTerm]);
+
+  // Put debouncedSearchTerm (not searchTerm) in useEffect's dependency array to fetch movies whenever the search term changes
   useEffect(() => {
-    fetchMovies(searchTerm);
-  }, [searchTerm]);
+    fetchMovies(debouncedSearchTerm);
+  }, [debouncedSearchTerm]);
 
   return (
     <main>

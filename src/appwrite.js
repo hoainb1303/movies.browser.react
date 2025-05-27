@@ -1,0 +1,40 @@
+import { Client, Databases, ID, Query } from "appwrite";
+const PROJECT_ID = import.meta.env.VITE_APPWRITE_PROJECT_ID;
+const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+const COLLECTION_ID = import.meta.env.VITE_APPWRITE_COLLECTION_ID;
+
+// Create an Appwrite client instance base on Appwrite documentation
+// https://appwrite.io/docs/getting-started-for-web
+const client = new Client()
+  .setEndpoint("https://cloud.appwrite.io/v1")
+  .setProject(PROJECT_ID);
+
+const database = new Databases(client);
+
+// Function to update search count in Appwrite database
+export const updateSearchCount = async (searchTerm, movie) => {
+  try {
+    // Check if searchTerm and movie are exists in the database
+    const result = await database.listDocuments(DATABASE_ID, COLLECTION_ID, [
+      Query.equal("searchTerm", searchTerm),
+    ]);
+
+    if (result.documents.length > 0) {
+      // If searchTerm exists, update the count of the first document found
+      const doc = result.documents[0];
+      await database.updateDocuments(DATABASE_ID, COLLECTION_ID, doc.$id, {
+        count: doc.count + 1,
+      });
+    } else {
+      // If searchTerm does not exist, create a new document with count 1
+      await database.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), {
+        searchTerm,
+        count: 1,
+        movie_id: movie.id,
+        poster_url: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
+      });
+    }
+  } catch (error) {
+    console.error("Error updating search count:", error);
+  }
+};
